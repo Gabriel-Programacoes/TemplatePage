@@ -1,6 +1,7 @@
 const root = document.documentElement;
 const heroImage = document.querySelector(".hero-media img");
 const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
+const mapFrame = document.querySelector(".map-frame iframe[data-src]");
 
 const revealTargets = [
   ...document.querySelectorAll(
@@ -30,6 +31,24 @@ const revealObserver = new IntersectionObserver(
 
 revealTargets.forEach((element) => revealObserver.observe(element));
 
+if (mapFrame) {
+  const mapObserver = new IntersectionObserver(
+    (entries) => {
+      entries.forEach((entry) => {
+        if (entry.isIntersecting) {
+          mapFrame.src = mapFrame.dataset.src;
+          mapObserver.disconnect();
+        }
+      });
+    },
+    {
+      rootMargin: "320px 0px",
+    }
+  );
+
+  mapObserver.observe(mapFrame);
+}
+
 let ticking = false;
 
 function updateScrollEffects() {
@@ -39,9 +58,11 @@ function updateScrollEffects() {
 
   root.style.setProperty("--scroll-progress", `${progress}%`);
 
-  if (heroImage && !reduceMotion.matches) {
+  if (heroImage && !reduceMotion.matches && window.innerWidth > 768) {
     const parallax = Math.min(scrollTop * 0.22, 130);
     root.style.setProperty("--parallax-y", `${parallax}px`);
+  } else {
+    root.style.setProperty("--parallax-y", "0px");
   }
 
   ticking = false;
